@@ -1,15 +1,16 @@
-// Licensed under the Dartastic Pro Software License Agreement.
+// Licensed under the Apache License, Version 2.0
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_trulioo_suppression.dart';
 
 const _tracerName = 'dartastic_otel_libs_trulioo';
 
-Tracer _tracer() => OTel.tracerProvider().getTracer(_tracerName);
+APITracer _tracer() => OTelAPI.tracerProvider().getTracer(_tracerName);
 
 class TruliooResult {
+  /// Creates a result.
   const TruliooResult({
     this.transactionId,
     this.recordStatus,
@@ -60,8 +61,13 @@ class TruliooResult {
   final int? statusCode;
 }
 
+/// What a traced call returned: the value for the caller plus fields
+/// recorded on the span.
 class TruliooCallResult<T> {
+  /// Creates a call result.
   const TruliooCallResult({required this.value, this.result});
+
+  /// The value returned to the caller.
   final T value;
   final TruliooResult? result;
 }
@@ -90,20 +96,20 @@ Future<T> tracedTrulioo<T>({
   final span = _tracer().startSpan(
     'trulioo $operation',
     kind: SpanKind.client,
-    attributes: OTel.attributesFromMap(m),
+    attributes: OTelAPI.attributesFromMap(m),
   );
   try {
     final r = await invoke();
     if (r.result != null) {
       final extras = <Attribute<Object>>[];
       if (r.result!.transactionId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'trulioo.transaction.id',
           r.result!.transactionId!,
         ));
       }
       if (r.result!.recordStatus != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'trulioo.record.status',
           r.result!.recordStatus!,
         ));
@@ -115,55 +121,55 @@ Future<T> tracedTrulioo<T>({
         }
       }
       if (r.result!.country != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'trulioo.country',
           r.result!.country!,
         ));
       }
       if (r.result!.product != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'trulioo.product',
           r.result!.product!,
         ));
       }
       if (r.result!.datasourceCount != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'trulioo.datasource_count',
           r.result!.datasourceCount!,
         ));
       }
       if (r.result!.datasourcesMatched != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'trulioo.datasources_matched',
           r.result!.datasourcesMatched!,
         ));
       }
       if (r.result!.consent != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'trulioo.consent',
           r.result!.consent!,
         ));
       }
       if (r.result!.watchlistHits != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'trulioo.watchlist.hits',
           r.result!.watchlistHits!,
         ));
       }
       if (r.result!.kybMatchScore != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'trulioo.kyb.match_score',
           r.result!.kybMatchScore!,
         ));
       }
       if (r.result!.requestId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'trulioo.request.id',
           r.result!.requestId!,
         ));
       }
       if (r.result!.statusCode != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'http.response.status_code',
           r.result!.statusCode!,
         ));
@@ -174,13 +180,13 @@ Future<T> tracedTrulioo<T>({
           );
         }
       }
-      if (extras.isNotEmpty) span.addAttributes(OTel.attributes(extras));
+      if (extras.isNotEmpty) span.addAttributes(OTelAPI.attributes(extras));
     }
     return r.value;
   } catch (e, st) {
-    span.addAttributes(OTel.attributes([
-      OTel.attributeString(
-        ErrorResource.errorType.key,
+    span.addAttributes(OTelAPI.attributes([
+      OTelAPI.attributeString(
+        ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
     ]));
